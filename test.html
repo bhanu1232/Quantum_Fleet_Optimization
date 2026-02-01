@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-Route Test Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .status-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 1rem 0;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 0.5rem;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+        
+        .status-value {
+            font-family: 'Courier New', monospace;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+        }
+        
+        .status-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            margin: 1rem 0.5rem 1rem 0;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+        
+        .test-results {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            border-top-color: #6366f1;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Q-Route Integration Test</h1>
+        <p style="color: #cbd5e1; margin-bottom: 2rem;">Testing backend and frontend integration</p>
+        
+        <div class="status-card">
+            <h2 style="margin-bottom: 1rem;">Server Status</h2>
+            
+            <div class="status-item">
+                <span class="status-label">Backend API</span>
+                <span class="status-value" id="backend-status">
+                    <span class="loading"></span> Checking...
+                </span>
+            </div>
+            
+            <div class="status-item">
+                <span class="status-label">Frontend</span>
+                <span class="status-value status-success">✓ Running</span>
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <h2 style="margin-bottom: 1rem;">Quick Actions</h2>
+            <a href="http://localhost:5173" class="btn" target="_blank">Open Q-Route App</a>
+            <button class="btn" onclick="testBackend()">Test Backend API</button>
+            <button class="btn" onclick="testOptimization()">Test Optimization</button>
+        </div>
+        
+        <div id="test-output" class="test-results" style="display: none;"></div>
+    </div>
+    
+    <script>
+        // Check backend status on load
+        async function checkBackend() {
+            try {
+                const response = await fetch('http://localhost:8000/api/health');
+                const data = await response.json();
+                document.getElementById('backend-status').innerHTML = 
+                    '<span class="status-success">✓ Running</span>';
+                return true;
+            } catch (error) {
+                document.getElementById('backend-status').innerHTML = 
+                    '<span class="status-error">✗ Offline</span>';
+                return false;
+            }
+        }
+        
+        async function testBackend() {
+            const output = document.getElementById('test-output');
+            output.style.display = 'block';
+            output.textContent = 'Testing backend API...\n\n';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/health');
+                const data = await response.json();
+                output.textContent += 'Backend Health Check:\n';
+                output.textContent += JSON.stringify(data, null, 2);
+                output.textContent += '\n\n✅ Backend is working!';
+            } catch (error) {
+                output.textContent += '❌ Error: ' + error.message;
+            }
+        }
+        
+        async function testOptimization() {
+            const output = document.getElementById('test-output');
+            output.style.display = 'block';
+            output.textContent = 'Testing route optimization...\n\n';
+            
+            const testData = {
+                locations: [
+                    {lat: 40.7128, lng: -74.0060, label: "Depot"},
+                    {lat: 40.7580, lng: -73.9855, label: "Times Square"},
+                    {lat: 40.7489, lng: -73.9680, label: "Queens"},
+                    {lat: 40.6782, lng: -73.9442, label: "Brooklyn"}
+                ],
+                num_vehicles: 2,
+                optimize_for: "distance"
+            };
+            
+            try {
+                output.textContent += 'Sending optimization request...\n';
+                const response = await fetch('http://localhost:8000/api/optimize-route', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                output.textContent += '\nOptimization Results:\n';
+                output.textContent += `Total Distance: ${data.total_distance_km} km\n`;
+                output.textContent += `Total Emissions: ${data.total_emissions_kg} kg CO₂\n`;
+                output.textContent += `Quantum Time: ${data.quantum_time_seconds}s\n`;
+                output.textContent += `Vehicles Used: ${data.num_vehicles}\n\n`;
+                
+                data.routes.forEach((route, i) => {
+                    output.textContent += `Vehicle ${i + 1}:\n`;
+                    output.textContent += `  Distance: ${route.distance_km} km\n`;
+                    output.textContent += `  Emissions: ${route.emissions_kg} kg CO₂\n`;
+                    output.textContent += `  Stops: ${route.route.length - 2}\n\n`;
+                });
+                
+                output.textContent += '✅ Optimization successful!';
+            } catch (error) {
+                output.textContent += '❌ Error: ' + error.message;
+            }
+        }
+        
+        // Check backend on page load
+        checkBackend();
+    </script>
+</body>
+</html>

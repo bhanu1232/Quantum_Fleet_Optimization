@@ -1,0 +1,122 @@
+/* Route card styles */
+.route-card-minimal {
+    padding: var(--spacing-md);
+    background: var(--bg-medium);
+    border-left: 3px solid;
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+}
+
+.route-header-minimal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: opacity var(--transition-fast);
+}
+
+.route-header-minimal.clickable:hover {
+    opacity: 0.8;
+}
+
+.route-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.route-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.route-stats-minimal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+/* Route details - collapsible content */
+.route-details {
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border);
+}
+
+.route-path {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.route-stop {
+    display: flex;
+    gap: var(--spacing-md);
+    position: relative;
+}
+
+.stop-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4px;
+}
+
+.stop-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.stop-dot.depot {
+    width: 14px;
+    height: 14px;
+}
+
+.stop-dot.delivery {
+    background: var(--bg-medium);
+}
+
+.stop-line {
+    width: 2px;
+    flex: 1;
+    min-height: 32px;
+    opacity: 0.5;
+}
+
+.stop-info {
+    flex: 1;
+    padding-bottom: var(--spacing-md);
+}
+
+.stop-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.stop-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.stop-coords {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace;
+}
