@@ -8,9 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 import numpy as np
+import logging
 
 from quantum_solver import solve_route_quantum
-from utils import build_distance_matrix, format_routes_response, generate_color_for_vehicle
+from utils import build_distance_matrix, build_road_distance_matrix, format_routes_response, generate_color_for_vehicle
+from routing_service import get_routing_service
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
@@ -27,6 +32,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize routing service
+try:
+    routing_service = get_routing_service()
+    if routing_service.health_check():
+        logger.info("✓ OSRM routing service is available")
+    else:
+        logger.warning("⚠ OSRM routing service health check failed - will use fallback")
+        routing_service = None
+except Exception as e:
+    logger.warning(f"⚠ Could not initialize routing service: {e} - will use haversine fallback")
+    routing_service = None
 
 
 # Request/Response Models
@@ -49,6 +66,8 @@ class RouteInfo(BaseModel):
     distance_km: float
     emissions_kg: float
     color: str
+    duration_minutes: Optional[float] = None
+    geometry: Optional[List[List[float]]] = None  # Route polyline coordinates
 
 
 class RouteResponse(BaseModel):
@@ -59,6 +78,8 @@ class RouteResponse(BaseModel):
     quantum_time_seconds: float
     num_vehicles: int
     num_locations: int
+    used_real_roads: bool = False
+    total_duration_minutes: Optional[float] = None
 
 
 # API Endpoints
@@ -79,10 +100,13 @@ async def root():
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
+    routing_available = routing_service is not None and routing_service.health_check()
     return {
         "status": "healthy",
         "quantum_backend": "AerSimulator",
-        "algorithm": "QAOA-inspired"
+        "algorithm": "QAOA-inspired",
+        "routing_service": "OSRM" if routing_available else "Haversine (fallback)",
+        "real_roads_available": routing_available
     }
 
 
@@ -114,8 +138,23 @@ async def optimize_route(request: RouteRequest):
         # Convert locations to list of dicts
         locations_data = [loc.dict() for loc in request.locations]
         
-        # Build distance matrix
-        distance_matrix = build_distance_matrix(locations_data)
+        # Build distance matrix using real roads if available
+        used_roads = False
+        duration_matrix = None
+        
+        if routing_service:
+            try:
+                distance_matrix, duration_matrix, used_roads = build_road_distance_matrix(
+                    locations_data, 
+                    routing_service
+                )
+                logger.info(f"Using {'real road' if used_roads else 'haversine'} distances")
+            except Exception as e:
+                logger.warning(f"Road routing failed: {e}. Using haversine fallback.")
+                distance_matrix = build_distance_matrix(locations_data)
+        else:
+            # Fallback to haversine
+            distance_matrix = build_distance_matrix(locations_data)
         
         # Apply carbon optimization if requested (weight distances by emission factor)
         if request.optimize_for == "carbon":
@@ -128,12 +167,15 @@ async def optimize_route(request: RouteRequest):
             num_vehicles=request.num_vehicles
         )
         
-        # Format response
+        # Format response with route geometries
         response_data = format_routes_response(
             routes=routes,
             locations=locations_data,
             distance_matrix=distance_matrix,
-            quantum_time=quantum_time
+            quantum_time=quantum_time,
+            duration_matrix=duration_matrix,
+            routing_service=routing_service if used_roads else None,
+            used_roads=used_roads
         )
         
         # Add colors to routes

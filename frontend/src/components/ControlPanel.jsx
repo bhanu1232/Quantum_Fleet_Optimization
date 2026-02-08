@@ -151,6 +151,12 @@ const ControlPanel = ({
                             <div className="result-value-large">{results.total_emissions_kg}</div>
                             <div className="result-label-small">kg CO₂</div>
                         </div>
+                        {results.total_duration_minutes && (
+                            <div className="result-card-minimal">
+                                <div className="result-value-large">{Math.round(results.total_duration_minutes)}</div>
+                                <div className="result-label-small">min Total</div>
+                            </div>
+                        )}
                         <div className="result-card-minimal">
                             <div className="result-value-large">{results.quantum_time_seconds}</div>
                             <div className="result-label-small">sec Compute</div>
@@ -160,6 +166,24 @@ const ControlPanel = ({
                             <div className="result-label-small">Vehicles</div>
                         </div>
                     </div>
+
+                    {/* Road Routing Status */}
+                    {results.used_real_roads && (
+                        <div className="routing-status" style={{
+                            padding: '8px 12px',
+                            background: 'rgba(16, 185, 129, 0.1)',
+                            borderRadius: '8px',
+                            marginTop: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '0.85rem',
+                            color: '#10b981'
+                        }}>
+                            <span>✓</span>
+                            <span>Using real road networks via OSRM</span>
+                        </div>
+                    )}
 
                     {/* Routes Breakdown */}
                     <div className="routes-list">
@@ -214,6 +238,12 @@ const RouteCard = ({ route, locations }) => {
 
             <div className="route-stats-minimal">
                 <span>{route.distance_km} km</span>
+                {route.duration_minutes && (
+                    <>
+                        <span>•</span>
+                        <span>{Math.round(route.duration_minutes)} min</span>
+                    </>
+                )}
                 <span>•</span>
                 <span>{route.emissions_kg} kg CO₂</span>
                 <span>•</span>

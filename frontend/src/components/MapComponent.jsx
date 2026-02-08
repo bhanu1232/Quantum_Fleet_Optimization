@@ -179,27 +179,42 @@ const MapComponent = ({ locations, onAddLocation, routes, onRemoveLocation }) =>
                 })}
 
                 {/* Render optimized routes */}
-                {routes && routes.map((route, routeIndex) => (
-                    <Polyline
-                        key={routeIndex}
-                        positions={route.coordinates.map(coord => [coord.lat, coord.lng])}
-                        pathOptions={{
-                            color: route.color,
-                            weight: 4,
-                            opacity: 0.8,
-                            dashArray: '10, 5'
-                        }}
-                    >
-                        <Popup>
-                            <div className="route-popup">
-                                <h4>Vehicle {route.vehicle_id + 1}</h4>
-                                <p><strong>Distance:</strong> {route.distance_km} km</p>
-                                <p><strong>Emissions:</strong> {route.emissions_kg} kg CO₂</p>
-                                <p><strong>Stops:</strong> {route.route.length - 2}</p>
-                            </div>
-                        </Popup>
-                    </Polyline>
-                ))}
+                {routes && routes.map((route, routeIndex) => {
+                    // Use real road geometry if available, otherwise use straight lines
+                    const routePositions = route.geometry 
+                        ? route.geometry.map(coord => [coord[0], coord[1]])  // OSRM returns [lat, lng]
+                        : route.coordinates.map(coord => [coord.lat, coord.lng]);  // Fallback to straight lines
+                    
+                    return (
+                        <Polyline
+                            key={routeIndex}
+                            positions={routePositions}
+                            pathOptions={{
+                                color: route.color,
+                                weight: route.geometry ? 5 : 4,  // Slightly thicker for real roads
+                                opacity: route.geometry ? 0.9 : 0.7,
+                                dashArray: route.geometry ? null : '10, 5'  // Solid for roads, dashed for straight
+                            }}
+                        >
+                            <Popup>
+                                <div className="route-popup">
+                                    <h4>🚗 Vehicle {route.vehicle_id + 1}</h4>
+                                    <p><strong>Distance:</strong> {route.distance_km} km</p>
+                                    {route.duration_minutes && (
+                                        <p><strong>Duration:</strong> {Math.round(route.duration_minutes)} min</p>
+                                    )}
+                                    <p><strong>Emissions:</strong> {route.emissions_kg} kg CO₂</p>
+                                    <p><strong>Stops:</strong> {route.route.length - 2}</p>
+                                    {route.geometry && (
+                                        <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
+                                            ✓ Real road route
+                                        </p>
+                                    )}
+                                </div>
+                            </Popup>
+                        </Polyline>
+                    );
+                })}
             </MapContainer>
 
             {/* Instructions overlay */}
